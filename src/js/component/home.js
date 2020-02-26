@@ -1,24 +1,106 @@
-import React from "react";
+import React, { useState } from "react";
+import PropTypes from "prop-types";
 
-//include images into your bundle
-import rigoImage from "../../img/rigo-baby.jpg";
-
-//create your first component
 export function Home() {
+	const [todos, setTodos] = useState([]);
+
+	const [value, setValue] = useState("");
+
+	const onValueChange = ({ target: { value } }) => {
+		setValue(value);
+	};
+
+	const Todo = ({ todo, handleCheckboxChange, deleteTodo }) => (
+		<li key={todo.id}>
+			<input
+				type="checkbox"
+				checked={todo.status}
+				onChange={() => handleCheckboxChange(todo.id)}
+			/>
+			<label>{todo.name}</label>
+			<button className="delete" onClick={() => deleteTodo(todo.id)}>
+				Delete
+			</button>
+		</li>
+	);
+
+	const addTodo = () => {
+		if (value !== "") {
+			setTodos([
+				...todos,
+				{
+					name: value,
+					status: false,
+					id: Date.now() + Math.random()
+				}
+			]);
+			setValue("");
+		}
+	};
+
+	const handleKeyPress = ({ key }) => {
+		if (key === "Enter") {
+			addTodo();
+		}
+	};
+
+	const handleCheckboxChange = id => {
+		setTodos(
+			todos.map(todo => {
+				if (todo.id === id) return { ...todo, status: !todo.status };
+				return todo;
+			})
+		);
+	};
+
+	const deleteTodo = id => {
+		setTodos(todos.filter(todo => todo.id !== id));
+	};
+
 	return (
-		<div className="text-center mt-5">
-			<h1>Hello Rigo!</h1>
+		<div className="container">
 			<p>
-				<img src={rigoImage} />
+				<label>Add Item</label>
+				<input
+					id="new-task"
+					type="text"
+					value={value}
+					name="todoField"
+					onKeyDown={handleKeyPress}
+					onChange={onValueChange}
+				/>
+				<button onClick={addTodo}>Add</button>
 			</p>
-			<a href="#" className="btn btn-success">
-				If you see this green button... bootstrap is working
-			</a>
-			<p>
-				Made by{" "}
-				<a href="http://www.4geeksacademy.com">4Geeks Academy</a>, with
-				love!
-			</p>
+
+			<h3>Todo</h3>
+			<ul id="incomplete-tasks">
+				{todos.filter(todo => !todo.status).map((todo, index) => (
+					<Todo
+						key={index}
+						todo={todo}
+						handleCheckboxChange={handleCheckboxChange}
+						deleteTodo={deleteTodo}
+					/>
+				))}
+			</ul>
+
+			<h3>Completed</h3>
+			<ul id="completed-tasks">
+				{todos.filter(todo => todo.status).map((todo, index) => (
+					<Todo
+						key={index}
+						todo={todo}
+						handleCheckboxChange={handleCheckboxChange}
+						deleteTodo={deleteTodo}
+					/>
+				))}
+			</ul>
 		</div>
 	);
 }
+
+Home.propTypes = {
+	todo: PropTypes.function,
+	handleCheckboxChange: PropTypes.function,
+	deleteTodo: PropTypes.function
+};
